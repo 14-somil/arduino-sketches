@@ -2,7 +2,7 @@
 #include <ros.h>
 #include <ezButton.h>
 #include <beginner_tutorials/angles.h>
-
+#include <std_msgs/Bool.h>
 
 #define motor1_speed 8
 #define motor2_speed 11
@@ -64,61 +64,150 @@ Servo servo_2;
 
 void serviceCallback(const beginner_tutorials::anglesRequest& request, beginner_tutorials::anglesResponse& response)
 {
-  while(angle_first != request.first)
+  if(request.isSlow == true)
   {
-    if(angle_first - request.first > 0)
+    int temp_time = millis();
+    while(angle_first != request.first)
     {
-      digitalWrite(motor1_dir, LOW);
-      analogWrite(motor1_speed, speed);
-    }
-    else
-    {
-      digitalWrite(motor1_dir, HIGH);
-      analogWrite(motor1_speed, speed);
-    }
-  }
-  analogWrite(motor1_speed, 0);
+      if(millis()-temp_time > 2000)
+      {
+        break;
+      }
 
-  while(angle_second != request.second)
-  {
-    if(angle_second - request.second > 0)
-    {
-      digitalWrite(motor2_dir, LOW);
-      analogWrite(motor2_speed, speed);
+      if(angle_first - request.first > 0)
+      {
+        digitalWrite(motor1_dir, LOW);
+        analogWrite(motor1_speed, speed);
+      }
+      else
+      {
+        digitalWrite(motor1_dir, HIGH);
+        analogWrite(motor1_speed, speed);
+      }
     }
-    else
+    analogWrite(motor1_speed, 0);
+
+    temp_time = millis();
+    while(angle_second != request.second)
     {
-      digitalWrite(motor2_dir, HIGH);
-      analogWrite(motor2_speed, speed);
+      if(millis()-temp_time > 2000)
+      {
+        break;
+      }
+
+      if(angle_second - request.second > 0)
+      {
+        digitalWrite(motor2_dir, LOW);
+        analogWrite(motor2_speed, speed);
+      }
+      else
+      {
+        digitalWrite(motor2_dir, HIGH);
+        analogWrite(motor2_speed, speed);
+      }
     }
+    analogWrite(motor2_speed, 0);
+
+    // temp_time = millis();
+    // while(angle_base < request.base - 1 || angle_base > request.base + 1)
+    // {
+    //   if(millis()-temp_time > 2000)
+    //   {
+    //     break;
+    //   }
+    //   if(angle_base - request.base > 0)
+    //   {
+    //     digitalWrite(motor_base_dir, HIGH);
+    //     analogWrite(motor_base_speed, speed_base);
+    //   }
+    //   else
+    //   {
+    //     digitalWrite(motor_base_dir, LOW);
+    //     analogWrite(motor_base_speed, speed_base);
+    //   }
+    // }
+    // analogWrite(motor_base_speed, 0);
   }
-  analogWrite(motor2_speed, 0);
+
+  else
+  {
+    while(angle_first != request.first)
+    {
+      if(angle_first - request.first > 0)
+      {
+        digitalWrite(motor1_dir, LOW);
+        analogWrite(motor1_speed, speed);
+      }
+      else
+      {
+        digitalWrite(motor1_dir, HIGH);
+        analogWrite(motor1_speed, speed);
+      }
+    }
+    analogWrite(motor1_speed, 0);
+
+    while(angle_second != request.second)
+    {
+      if(angle_second - request.second > 0)
+      {
+        digitalWrite(motor2_dir, LOW);
+        analogWrite(motor2_speed, speed);
+      }
+      else
+      {
+        digitalWrite(motor2_dir, HIGH);
+        analogWrite(motor2_speed, speed);
+      }
+    }
+    analogWrite(motor2_speed, 0);
+
+    // while(angle_base < request.base - 1 || angle_base > request.base + 1)
+    // {
+    //   if(angle_base - request.base > 0)
+    //   {
+    //     digitalWrite(motor_base_dir, HIGH);
+    //     analogWrite(motor_base_speed, speed_base);
+    //   }
+    //   else
+    //   {
+    //     digitalWrite(motor_base_dir, LOW);
+    //     analogWrite(motor_base_speed, speed_base);
+    //   }
+    // }
+    // analogWrite(motor_base_speed, 0);
+
+  }
+
+  servo_1.write(request.servo1);
+  servo_2.write(request.servo2);
 
   nh.loginfo("check1");
-
-  // while(angle_base < request.base - 1 || angle_base > request.base + 1)
-  // {
-  //   if(angle_base - request.base > 0)
-  //   {
-  //     digitalWrite(motor_base_dir, HIGH);
-  //     analogWrite(motor_base_speed, speed_base);
-  //   }
-  //   else
-  //   {
-  //     digitalWrite(motor_base_dir, LOW);
-  //     analogWrite(motor_base_speed, speed_base);
-  //   }
-  // }
-  // analogWrite(motor_base_speed, 0);
-
   response.check = true;
   nh.loginfo("check2");
 
 }
 
+void messageCb(const std_msgs::Bool &toggle_msg)
+{
+  if(toggle_msg.data == true)
+  {
+    digitalWrite(pump_switch, HIGH);
+    digitalWrite(pump_motor, HIGH);
+    isPump = true;
+  }
+  else
+  {
+    digitalWrite(pump_switch, LOW);
+    digitalWrite(pump_motor, LOW);
+    isPump = false;
+  }
+}
+
 beginner_tutorials::anglesRequest req;
 beginner_tutorials::anglesResponse res;
 ros::ServiceServer<beginner_tutorials::anglesRequest, beginner_tutorials::anglesResponse> server("angles", &serviceCallback);
+
+ros::Subscriber<std_msgs::Bool> sub("/suction_control", &messageCb);
 
 void setup() {
   // put your setup code here, to run once:
