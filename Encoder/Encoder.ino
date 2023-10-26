@@ -1,7 +1,7 @@
 #include <ezButton.h>  // the library to use for SW pin
 
-#define CLK_PIN 2
-#define DT_PIN 3
+#define CLK_PIN 18
+#define DT_PIN 19
 #define SW_PIN 4
 
 #define DIRECTION_CW 0   // clockwise direction
@@ -9,8 +9,9 @@
 
 volatile int counter = 0;
 volatile int direction = DIRECTION_CW;
-volatile unsigned long last_time;  // for debouncing
+volatile long double last_time;  // for debouncing
 int prev_counter;
+volatile double speed;
 
 ezButton button(SW_PIN);  // create ezButton object that attach to pin 4
 
@@ -64,6 +65,9 @@ void ISR_encoderChange() {
     counter++;
     direction = DIRECTION_CW;
   }
+  
+  // speed= 1000/(millis()-last_time);
+  // Serial.println(speed);
 
   last_time = millis();
 }

@@ -5,31 +5,30 @@
 #include <std_msgs/Bool.h>
 
 #define motor1_speed 8
-#define motor2_speed 11
-#define motor_base_speed 7
-#define motor1_dir 36
-#define motor2_dir 44
+#define motor2_speed 9
+#define motor_base_speed 10
+#define motor1_dir 52
+#define motor2_dir 50
 #define motor_base_dir 48
 
 #define pump_switch 46
 #define pump_motor 46
 
-#define CLK_PIN_first 20
-#define DT_PIN_first 21
+#define CLK_PIN_first 3
+#define DT_PIN_first 2
 #define SW_PIN_first 4
 volatile long counter_first = 0;
 volatile unsigned long last_time_first;  // for debouncing
 long prev_counter_first;
 ezButton button_first(SW_PIN_first);
 
-#define CLK_PIN_second 3
-#define DT_PIN_second 2
+#define CLK_PIN_second 20
+#define DT_PIN_second 21
 #define SW_PIN_second 4
 volatile long counter_second = 0;
 volatile unsigned long last_time_second;  // for debouncing
 long prev_counter_second;
 ezButton button_second(SW_PIN_second);
-
 #define CLK_PIN_base 19
 #define DT_PIN_base 18
 #define SW_PIN_base 4

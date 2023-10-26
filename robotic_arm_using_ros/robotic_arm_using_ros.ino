@@ -4,23 +4,23 @@
 #include <ezButton.h>
 
 #define motor1_speed 8
-#define motor2_speed 11
-#define motor_base_speed 7
-#define motor1_dir 36
-#define motor2_dir 44
+#define motor2_speed 9
+#define motor_base_speed 10
+#define motor1_dir 52
+#define motor2_dir 50
 #define motor_base_dir 48
 
-#define pump_switch 46
-#define pump_motor 46
+#define pump_switch 53
+#define pump_motor 0
 
-#define CLK_PIN_base 20
-#define DT_PIN_base 21
+#define CLK_PIN_base 18
+#define DT_PIN_base 19
 #define SW_PIN_base 4
 volatile long counter_base = 0;
 volatile unsigned long last_time_base;  // for debouncing
 long prev_counter_base;
 ezButton button_base(SW_PIN_base);
-long countsPerRotation_base = 512;
+long countsPerRotation_base = 1024;
 long angle_base = 0;
 const int referenceAngle_base = 0;
 
@@ -94,7 +94,7 @@ void messageCb(const std_msgs::Char &toggle_msg) {
         break;
       }
 
-    case 'j':
+    case 'k':
       {
 
         if (servo_1_angle - 5 >= 0) {
@@ -105,7 +105,7 @@ void messageCb(const std_msgs::Char &toggle_msg) {
         break;
       }
 
-    case 'k':
+    case 'j':
       {
 
         if (servo_1_angle + 5 <= 180) {
@@ -197,7 +197,7 @@ void setup() {
   pinMode(pump_switch, OUTPUT);
   pinMode(pump_motor, OUTPUT);
 
-  servo_1.attach(5);
+  servo_1.attach(7);
   servo_2.attach(6);
 
   digitalWrite(pump_switch, LOW);
