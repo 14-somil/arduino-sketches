@@ -1,7 +1,7 @@
 #include <ezButton.h>  // the library to use for SW pin
 
-#define CLK_PIN 18
-#define DT_PIN 19
+#define CLK_PIN 20
+#define DT_PIN 21
 #define SW_PIN 4
 
 #define DIRECTION_CW 0   // clockwise direction
@@ -65,9 +65,6 @@ void ISR_encoderChange() {
     counter++;
     direction = DIRECTION_CW;
   }
-  
-  // speed= 1000/(millis()-last_time);
-  // Serial.println(speed);
 
   last_time = millis();
 }
