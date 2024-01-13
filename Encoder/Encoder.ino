@@ -1,7 +1,7 @@
 #include <ezButton.h>  // the library to use for SW pin
 
-#define CLK_PIN 20
-#define DT_PIN 21
+#define CLK_PIN 2
+#define DT_PIN 3
 #define SW_PIN 4
 
 #define DIRECTION_CW 0   // clockwise direction

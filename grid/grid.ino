@@ -11,23 +11,23 @@ float b2=10.1;
 
 #define motor1_pwm 8
 #define motor2_pwm 9
-#define motor_base_pwm 0
+#define motor_base_pwm 10
 #define motor1_dir 50
-#define motor2_dir 52
-#define motor_base_dir 0
+#define motor2_dir 43
+#define motor_base_dir 48
 
 #define pot A0
 
-#define pump_switch 53
-#define pump_motor 0
+#define pump_switch 13
+#define pump_motor 38
 bool isPump= false;
 
 Servo servo1;
 Servo servo2;
 Servo servo3;
 
-#define CLK_PIN_first 3
-#define DT_PIN_first 2
+#define CLK_PIN_first 2
+#define DT_PIN_first 3
 volatile long counter_first = 0;
 volatile long double last_time_first;  // for debouncing
 long prev_counter_first;
@@ -58,23 +58,26 @@ const int referenceAngle_first = 0;
 const int referenceAngle_second = 0;
 const int referenceAngle_base = 0;
 
-int servo_1_angle = 87;
-int servo_2_angle = 60;
+int servo_1_angle = 85;
+int servo_2_angle = 70;
 int servo_3_angle = 90;
 
 int voltage_first=0;
 int voltage_second=0;
 int voltage_base=0;
 
+int initial_angle_base=0;
+int adjusted_angle=0;
+
 ros::NodeHandle nh;
 
 void subCb(const beginner_tutorials::anglesMsg &msg) {
   target_angle_first = msg.first;
   target_angle_second = msg.second;
-  // target_angle_base = msg.base;
+  target_angle_base = msg.base;
   servo_1_angle = msg.servo1;
   servo_2_angle = msg.servo2;
-  // servo_3_angle = msg.servo3;
+  servo_3_angle = msg.servo3;
   isPump = msg.isPump;
 }
 
@@ -109,8 +112,10 @@ void calculate_voltage() {
   //   voltage_second = 255;
   // }
   float k= 50;
+  float k_base = 5;
   voltage_first = k * abs(target_angle_first - angle_first);
   voltage_second = k * abs(target_angle_second - angle_second);
+  voltage_base = k_base * abs(target_angle_base - angle_base);
 
   if(voltage_first>255) {
     voltage_first = 255;
@@ -126,12 +131,20 @@ void calculate_voltage() {
     voltage_second = 0;
   }
 
+  if(voltage_base>255) {
+    voltage_base = 255;
+  }
+  else if(voltage_base<0) {
+    voltage_base = 0;
+  }
+
 }
 
 void setup() {
   // put your setup code here, to run once:
   pinMode(pot, INPUT);
 
+  initial_angle_base = (map(analogRead(pot), 0, 1023, -1800, 1800));
   pinMode(motor1_pwm, OUTPUT);
   pinMode(motor2_pwm, OUTPUT);
   pinMode(motor_base_pwm, OUTPUT);
@@ -139,9 +152,9 @@ void setup() {
   pinMode(motor2_dir, OUTPUT);
   pinMode(motor_base_dir, OUTPUT);
 
-  servo1.attach(7);
+  servo1.attach(5);
   servo2.attach(6);
-  servo3.attach(6);
+  servo3.attach(7);
 
   digitalWrite(pump_switch, LOW);
   servo1.write(servo_1_angle);
@@ -166,17 +179,22 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
+/////////////////////////////////////////////////////////////////////////////////
+  int pot_input = analogRead(pot);                                           
+  int angle_base=((map(pot_input, 0, 1023, -1800, 1800))-initial_angle_base); 
+  char ch[20];
+  // nh.loginfo("base angle");
+  // nh.loginfo(itoa(angle_base,ch,10));                        
+/////////////////////////////////////////////////////////////////////////////////
 
   if(millis()-last_published > 10) {
     angleFeedback.first = angle_first;
     angleFeedback.second = angle_second;
-    angleFeedback.base = angle_base;
+    angleFeedback.base = angle_base ;
     pub.publish(&angleFeedback);
   }
-/////////////////////////////////////////////////////////////////////////////////
-  int pot_input = analogRead(pot);                                             //
-  angle_base = map(pot_input, 0, 1024, -1800, 1800);                           //
-/////////////////////////////////////////////////////////////////////////////////
+
+
   calculate_voltage();
 
   if((int)target_angle_first != (int)angle_first) {
@@ -203,7 +221,28 @@ void loop() {
     analogWrite(motor2_pwm, 0);
   }
 
+  if((int)target_angle_base != (int)angle_base) {
+    if(target_angle_base > angle_base)
+      digitalWrite(motor_base_dir, LOW);
+    else
+      digitalWrite(motor_base_dir, HIGH);
+    // nh.loginfo("moving base");
+    analogWrite(motor_base_pwm,30);
+  }
+  else {
+    analogWrite(motor_base_pwm, 0);
+  }
 
+  servo1.write(servo_1_angle);
+  servo2.write(servo_2_angle);
+  servo3.write(servo_3_angle);
+
+  if(isPump) {
+    digitalWrite(pump_switch, HIGH);
+  }
+  else {
+    digitalWrite(pump_switch, LOW);   
+  }
 
   nh.spinOnce();
   delay(1);
